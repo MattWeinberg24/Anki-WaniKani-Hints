@@ -1,4 +1,4 @@
-# via https://addon-docs.ankiweb.net/a-basic-addon.html
+# adapted from https://addon-docs.ankiweb.net/a-basic-addon.html
 
 # import the main window object (mw) from aqt
 from aqt import mw
@@ -14,8 +14,11 @@ def testFunction() -> None:
     # get the number of cards in the current collection, which is stored in
     # the main window
     cardCount = mw.col.cardCount()
+    # get the token from config.json
+    config = mw.addonManager.getConfig(__name__)
+    token = config['token']
     # show a message box
-    showInfo("Card count: %d" % cardCount)
+    showInfo(f"Card count: {cardCount}\nToken: {token}")
 
 # create a new menu item, "test"
 action = QAction("test", mw)
