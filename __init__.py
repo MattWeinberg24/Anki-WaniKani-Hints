@@ -1,28 +1,43 @@
-# adapted from https://addon-docs.ankiweb.net/a-basic-addon.html
 
-# import the main window object (mw) from aqt
+from anki import hooks
+from anki.template import TemplateRenderContext, TemplateRenderOutput
+
 from aqt import mw
-# import the "show info" tool from utils.py
-from aqt.utils import showInfo, qconnect
-# import all of the Qt GUI library
-from aqt.qt import *
 
-# We're going to add a menu item below. First we want to create a function to
-# be called when the menu item is activated.
+from enum import Enum
 
-def testFunction() -> None:
-    # get the number of cards in the current collection, which is stored in
-    # the main window
-    cardCount = mw.col.cardCount()
-    # get the token from config.json
-    config = mw.addonManager.getConfig(__name__)
-    token = config['token']
-    # show a message box
-    showInfo(f"Card count: {cardCount}\nToken: {token}")
+from .static import css
 
-# create a new menu item, "test"
-action = QAction("test", mw)
-# set it to call testFunction when it's clicked
-qconnect(action.triggered, testFunction)
-# and add it to the tools menu
-mw.form.menuTools.addAction(action)
+class HintType(str, Enum):
+    RADICAL = "radical"
+    # TODO: MNEMONIC = "mnemonic"
+
+config = mw.addonManager.getConfig(__name__)
+
+
+def format_hint(text: str, type: HintType, hint: str):
+    new_text = f'<div id="tooltip-{type.value}" class="tooltip">'
+    new_text += f"<span>{text}</span>"
+    new_text += f'<div id="bottom-{type.value}" class="bottom">'
+    new_text += f'<span id="{type.value}">{hint}</span>'
+    new_text += "</div></div>"
+    return new_text
+
+
+def on_field_filter(text: str, name: str, filter: str, context: TemplateRenderContext):
+    radical_filter = config["radical_filter"]
+
+    if filter != radical_filter:
+        return text
+    
+    return format_hint(text, HintType.RADICAL, "test")
+
+
+def on_card_render(output: TemplateRenderOutput, context: TemplateRenderContext):
+    headers = f"<style>{css}</style>"
+    output.question_text = headers + output.question_text
+    output.answer_text = headers + output.answer_text
+
+
+hooks.field_filter.append(on_field_filter)
+hooks.card_did_render.append(on_card_render)
