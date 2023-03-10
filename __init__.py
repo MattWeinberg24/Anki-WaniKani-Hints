@@ -1,10 +1,13 @@
 
 from anki import hooks
 from anki.template import TemplateRenderContext, TemplateRenderOutput
+from anki.media import CheckMediaResponse
 
-from aqt import mw
+from aqt import mw, gui_hooks
 
 from enum import Enum
+import json
+from pathlib import Path
 
 from .static import css
 from .api_utils import get_radicals_from_kanji, SubjectError
@@ -13,7 +16,18 @@ class HintType(str, Enum):
     RADICAL = "radical"
     # TODO: MNEMONIC = "mnemonic"
 
+# initialization
 config = mw.addonManager.getConfig(__name__)
+cache = {}
+cache_is_updated = False
+cache_path = Path("./cache.json")
+if not cache_path.is_file():
+    with open(cache_path.name, 'w') as f:
+        f.write("{}")
+        print("Created local cache")
+else:
+    with open(cache_path.name, 'r') as f:
+        cache = json.load(f)
 
 def is_kanji(c: str) -> bool:
     """
@@ -67,13 +81,26 @@ def on_field_filter(text: str, name: str, filter: str, context: TemplateRenderCo
         if not is_kanji(c):
             output += c
             continue
-        #TODO: Add local caching!!!!!!!!!!!
-        radicals = get_radicals_from_kanji(c, token)
-        if isinstance(radicals, SubjectError):
-            output += c
-            print(radicals)
-            continue
-        radical_names = ", ".join([r[0] for r in radicals])
+        
+        radical_names = ""
+        # check local cache for existing hint
+        if c in cache:
+            radical_names = cache[c]
+            print(f"{c} located in cache!")
+        # otherwise grab hints from WaniKani via API
+        else:
+            radicals = get_radicals_from_kanji(c, token)
+            if isinstance(radicals, SubjectError):
+                output += c
+                print(radicals)
+                continue
+            radical_names = ", ".join([r[0] for r in radicals])
+            # add to cache
+            cache[c] = radical_names
+            print(f"writing {c} to cache")
+            with open(cache_path.name, "w") as f:
+                json.dump(cache, f, indent=4)
+
         output += format_hint(c, HintType.RADICAL, radical_names)
     
     return output
