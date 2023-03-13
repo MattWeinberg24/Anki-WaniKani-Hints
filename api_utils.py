@@ -13,12 +13,7 @@ class SubjectError(Enum):
     INVALID_SLUG = -2
     INVALID_ID = -3
 
-class ImageSize(str, Enum):
-    SMALL = "32x32"
-    MEDIUM = "64x64"
-    LARGE = "128x128"
-
-def get_subject_by_slug(type: SubjectType, slug: str, token: str) -> dict | SubjectError:
+def get_subject_by_slug(subject_type: SubjectType, slug: str, token: str) -> dict | SubjectError:
     """
     Query the WaniKani API for a specific subject via its type and slug
 
@@ -30,9 +25,10 @@ def get_subject_by_slug(type: SubjectType, slug: str, token: str) -> dict | Subj
     Returns:
         subject json (dictionary) on success, or a SubjectError on fail
     """
+    print(f"WK API: type={subject_type},slug={slug}")
 
     params = {
-        "types": type.value,
+        "types": subject_type.value,
         "slugs": slug
     }
     headers = {
@@ -59,6 +55,7 @@ def get_subject_by_id(id: int, token: str) -> dict | SubjectError:
     Returns:
         subject json (dictionary) on success, or a SubjectError on fail
     """
+    print(f"WK API: id={id}")
 
     url = f"{base_url}/{id}"
     headers = {
@@ -74,36 +71,3 @@ def get_subject_by_id(id: int, token: str) -> dict | SubjectError:
             return SubjectError.INVALID_ID
         
     return r.json()["data"]
-
-
-def get_radicals_from_kanji(kanji: str, token: str, image_size: ImageSize = ImageSize.SMALL) -> list | SubjectError:
-    """
-    Given a kanji character string, return a list of radicals it is made up of (name and image)
-
-    Args:
-        kanji (str): kanji character
-        token (str): WaniKani API token
-        image_size (ImageSize, optional): Size of the image. Defaults to ImageSize.SMALL.
-
-    Returns:
-        a list of (<radical name>,<radical image url>) tuples on success, or a SubjectError on fail
-    """
-
-    kanji_r = get_subject_by_slug(SubjectType.KANJI, kanji, token)
-    if isinstance(kanji_r, SubjectError):
-        return kanji_r
-
-    radical_ids = kanji_r["component_subject_ids"]
-
-    result = []
-    for id in radical_ids:
-        radical_r = get_subject_by_id(id, token)
-
-        slug = radical_r["slug"]
-
-        images = radical_r["character_images"]
-        image_urls = [img["url"] for img in images if img["content_type"] == "image/png" and img["metadata"]["dimensions"] == image_size.value]
-        
-        result.append((slug, image_urls[0]))
-
-    return result
