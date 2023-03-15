@@ -7,7 +7,7 @@ from aqt import mw, gui_hooks
 
 from enum import Enum
 import json
-import os.path
+from pathlib import Path
 
 from .static import css
 from .api_utils import get_subject_by_slug, get_subject_by_id, SubjectError, SubjectType
@@ -16,7 +16,7 @@ class HintType(str, Enum):
     RADICAL = "radical"
     # TODO: MNEMONIC = "mnemonic"
 
-CACHE_PATH = "./cache.json"
+CACHE_PATH = f"{Path(__file__).parent}/cache.json"
 EMPTY_CACHE = f"""{{
     "{SubjectType.RADICAL.value}": {{}},
     "{SubjectType.KANJI.value}": {{}},
@@ -143,7 +143,7 @@ def on_field_filter(text: str, name: str, filter: str, context: TemplateRenderCo
         radical_ids = kanji_entry["radical_ids"]
         # query the radical cache for each of their corresponding names
         radical_cache = cache[SubjectType.RADICAL.value]
-        radical_names = [radical_cache[id]["slug"] for id in radical_ids]
+        radical_names = [radical_cache[str(id)]["slug"] for id in radical_ids]
 
         radical_names_str = ", ".join(radical_names)
         output += format_hint(c, HintType.RADICAL, radical_names_str)
@@ -158,13 +158,13 @@ def on_card_render(output: TemplateRenderOutput, context: TemplateRenderContext)
 
 
 # initialization: create and/or open cache
-if not os.path.exists(CACHE_PATH):
+if not Path(CACHE_PATH).is_file():
     with open(CACHE_PATH, 'w') as f:
         f.write(EMPTY_CACHE)
-        
-        print("Created local cache")
+        print(f"Created local cache at {CACHE_PATH}")
 with open(CACHE_PATH, 'r') as f:
     cache = json.load(f)
+    print(f"Opened local cache at {CACHE_PATH}")
 
 # initialization: apply handlers to hooks
 hooks.field_filter.append(on_field_filter)
