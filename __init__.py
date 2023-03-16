@@ -1,20 +1,15 @@
-
 from anki import hooks
 from anki.template import TemplateRenderContext, TemplateRenderOutput
 from anki.media import CheckMediaResponse
-
 from aqt import mw, gui_hooks
 
 from enum import Enum
 import json
 from pathlib import Path
 
-from .static import css
 from .api_utils import get_subject_by_slug, get_subject_by_id, SubjectError, SubjectType
-
-class HintType(str, Enum):
-    RADICAL = "radical"
-    # TODO: MNEMONIC = "mnemonic"
+from .static import css
+from .util import is_kanji
 
 CACHE_PATH = f"{Path(__file__).parent}/cache.json"
 EMPTY_CACHE = f"""{{
@@ -26,44 +21,36 @@ EMPTY_CACHE = f"""{{
 config = mw.addonManager.getConfig(__name__)
 cache = {}
 
-def is_kanji(c: str) -> bool:
+def query_cache_vocab(slug: str) -> dict | SubjectError:
     """
-    Tests whether a provided character is a kanji or not
-    (courtesy of https://github.com/midse/anki-kakijun)
+    Query the WaniKani API for information on the provided vocabulary,
+    then add relevant data to the local cache
 
     Args:
-        c (str): unicode character to test
+        slug (str): vocabulary string
 
     Returns:
-        bool: true if kanji, false if not
+        dict | SubjectError: newly cached vocabulary data entry if success, SubjectError if fail
     """
-    c = ord(c)
-    return (
-        (c >= 0x4E00 and c <= 0x9FC3)
-        or (c >= 0x3400 and c <= 0x4DBF)
-        or (c >= 0xF900 and c <= 0xFAD9)
-        or (c >= 0x2E80 and c <= 0x2EFF)
-        or (c >= 0x20000 and c <= 0x2A6DF)
-    )
 
+    token = config["token"]
+    # query WaniKani API for vocab data
+    vocab_data = get_subject_by_slug(SubjectType.VOCABULARY, slug, token)
+    if isinstance(vocab_data, SubjectError):
+        return vocab_data
 
-def format_hint(text: str, type: HintType, hint: str) -> str:
-    """Formats field text such that a tooltip is added
+    # build vocab cache entry
+    vocab_entry = {}
+    vocab_entry["mm"] = vocab_data["meaning_mnemonic"]
+    vocab_entry["rm"] = vocab_data["reading_mnemonic"]
 
-    Args:
-        text (str): previous field text
-        type (HintType): type of hint being added
-        hint (str): the hint to add
+    cache[SubjectType.VOCABULARY.value][slug] = vocab_entry
 
-    Returns:
-        str: updated field text (includes tooltip)
-    """
-    output = f'<div id="tooltip-{type.value}" class="tooltip">'
-    output += f"<span>{text}</span>"
-    output += f'<div id="bottom-{type.value}" class="bottom">'
-    output += f'<span id="{type.value}">{hint}</span>'
-    output += "</div></div>"
-    return output
+    # rewrite cache file
+    with open(CACHE_PATH, "w") as f:
+        json.dump(cache, f, indent=4)
+    
+    return vocab_entry
 
 
 def query_cache_kanji(slug: str) -> dict | SubjectError:
@@ -105,7 +92,8 @@ def query_cache_kanji(slug: str) -> dict | SubjectError:
             radical_entry["mm"] = radical_data["meaning_mnemonic"]
             radical_entry["image_url"] = [img["url"] for img in radical_data["character_images"] if img["content_type"] == "image/png" and img["metadata"]["dimensions"] == "32x32"][0]
 
-            cache[SubjectType.RADICAL.value][id] = radical_entry
+            # cache the radical entry (note: `id` key gets converted to string for json)
+            cache[SubjectType.RADICAL.value][str(id)] = radical_entry
 
     cache[SubjectType.KANJI.value][slug] = kanji_entry
 
@@ -116,18 +104,34 @@ def query_cache_kanji(slug: str) -> dict | SubjectError:
     return kanji_entry
 
 
-def on_field_filter(text: str, name: str, filter: str, context: TemplateRenderContext):
-    radical_filter = config["radical_filter"]
+def format_hint(text: str, hint: str) -> str:
+    """Formats field text such that a tooltip is added
 
-    if filter != radical_filter:
-        return text
+    Args:
+        text (str): previous field text
+        type (HintType): type of hint being added
+        hint (str): the hint to add
 
+    Returns:
+        str: updated field text (includes tooltip)
+    """
+    output = f'<div class="tooltip">'
+    output += f"<span>{text}</span>"
+    output += f'<div class="bottom">'
+    output += f'<span>{hint}</span>'
+    output += "</div></div>"
+    return output
+
+
+def prepare_kanji_hint(text: str) -> str:
     output = ""
+
     for c in text:
         if not is_kanji(c):
             output += c
             continue
         
+        # retrieve kanji entry from cache or API
         kanji_entry = {}
         if c in cache[SubjectType.KANJI.value]:
             # get the ids of radicals this kanji is composed of
@@ -145,10 +149,22 @@ def on_field_filter(text: str, name: str, filter: str, context: TemplateRenderCo
         radical_cache = cache[SubjectType.RADICAL.value]
         radical_names = [radical_cache[str(id)]["slug"] for id in radical_ids]
 
+        #TODO: Mnemonic formatting
+
         radical_names_str = ", ".join(radical_names)
-        output += format_hint(c, HintType.RADICAL, radical_names_str)
+        output += format_hint(c, radical_names_str)
     
     return output
+
+
+def on_field_filter(text: str, name: str, filter: str, context: TemplateRenderContext):
+    if filter == config["kanji_filter"]:
+        return prepare_kanji_hint(text)
+    if filter == config["vocab_filter"]:
+        # TODO: implement vocab hints
+        return text
+    
+    return text
 
 
 def on_card_render(output: TemplateRenderOutput, context: TemplateRenderContext):
@@ -165,6 +181,7 @@ if not Path(CACHE_PATH).is_file():
 with open(CACHE_PATH, 'r') as f:
     cache = json.load(f)
     print(f"Opened local cache at {CACHE_PATH}")
+
 
 # initialization: apply handlers to hooks
 hooks.field_filter.append(on_field_filter)

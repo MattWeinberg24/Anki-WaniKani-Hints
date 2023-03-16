@@ -32,8 +32,4 @@ css = """
     display:block;
 }
 
-.tooltip .bottom svg {
-    width:100px;
-    height:100px;
-}
 """

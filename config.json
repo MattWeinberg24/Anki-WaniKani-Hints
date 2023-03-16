@@ -1,4 +1,5 @@
 {
     "token": null,
-    "radical_filter": "wk-radical"
+    "kanji_filter": "wk-kanji-hint",
+    "vocab_filter": "wk-vocab-hint"
 }

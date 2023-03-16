@@ -1,3 +1,5 @@
-`token` : wanikani token
+`token` : WaniKani API token
 
-`radical_filter` : change the default radical tip filter name
+`kanji_filter` : change the kanji tip filter name
+
+`vocab_filter` : change the vocab tip filter name
