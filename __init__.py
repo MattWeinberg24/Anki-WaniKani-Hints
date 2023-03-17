@@ -104,24 +104,23 @@ def query_cache_kanji(slug: str) -> dict | SubjectError:
     return kanji_entry
 
 
-def format_hint(text: str, hint: str) -> str:
-    """Formats field text such that a tooltip is added
-
-    Args:
-        text (str): previous field text
-        type (HintType): type of hint being added
-        hint (str): the hint to add
-
-    Returns:
-        str: updated field text (includes tooltip)
+def format_hint(text: str, radical_list: str, meaning_mnemonic, reading_mnemonic) -> str:
+    return f"""
+    <div class="tooltip">
+        <p>{text}</p>
+        <div class="bottom">
+            <div class="radical-list">
+                {radical_list}
+            </div>
+            <div class="meaning-mnemonic">
+                {meaning_mnemonic}
+            </div>
+            <div class="reading-mnemonic">
+                {reading_mnemonic}
+            </div>
+        </div>
+    </div>
     """
-    output = f'<div class="tooltip">'
-    output += f"<span>{text}</span>"
-    output += f'<div class="bottom">'
-    output += f'<span>{hint}</span>'
-    output += "</div></div>"
-    return output
-
 
 def prepare_kanji_hint(text: str) -> str:
     output = ""
@@ -149,10 +148,9 @@ def prepare_kanji_hint(text: str) -> str:
         radical_cache = cache[SubjectType.RADICAL.value]
         radical_names = [radical_cache[str(id)]["slug"] for id in radical_ids]
 
-        #TODO: Mnemonic formatting
-
+        # format html to inject into card
         radical_names_str = ", ".join(radical_names)
-        output += format_hint(c, radical_names_str)
+        output += format_hint(c, radical_names_str, kanji_entry["mm"], kanji_entry["rm"])
     
     return output
 
