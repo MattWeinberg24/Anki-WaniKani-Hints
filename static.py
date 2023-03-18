@@ -1,8 +1,9 @@
-html = """<div class="tooltip">
+html = """
+<div class="tooltip">
     {text}
     <div class="bottom">
-        <div class="radical-list">
-            {radical_list}
+        <div class="component-list">
+            {component_list}
         </div>
         <div class="meaning-mnemonic">
             {meaning_mnemonic}
@@ -11,7 +12,8 @@ html = """<div class="tooltip">
             {reading_mnemonic}
         </div>
     </div>
-</div>"""
+</div>
+"""
 
 css = """
 .tooltip {
@@ -43,13 +45,13 @@ css = """
 .tooltip:hover .bottom {
     display:block;
 }
-.radical-list {
+.component-list {
     border-bottom:2px solid #666;
 }
 .reading-mnemonic, .meaning-mnemonic {
     border-bottom:2px solid #666;
 }
-radical, kanji, reading, ja {
+radical, kanji, vocabulary, reading, ja {
     font-weight: bold;
 }
 """
