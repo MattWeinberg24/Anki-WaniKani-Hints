@@ -1,14 +1,15 @@
+# anki/qt dependencies
 from anki import hooks
 from anki.template import TemplateRenderContext, TemplateRenderOutput
-from anki.media import CheckMediaResponse
-from aqt import mw, gui_hooks
+from aqt import mw
 
-from enum import Enum
+# general python dependencies
 import json
 from pathlib import Path
 
+# custom dependencies
 from .api_utils import get_subject_by_slug, get_subject_by_id, SubjectError, SubjectType
-from .static import css
+from .static import html, css
 from .util import is_kanji
 
 CACHE_PATH = f"{Path(__file__).parent}/cache.json"
@@ -69,6 +70,12 @@ def query_cache_kanji(slug: str) -> dict | SubjectError:
     # query WaniKani API for kanji data
     kanji_data = get_subject_by_slug(SubjectType.KANJI, slug, token)
     if isinstance(kanji_data, SubjectError):
+        # if kanji not in WaniKani, cache a special value
+        if kanji_data == SubjectError.INVALID_SLUG:
+            cache[SubjectType.KANJI.value][slug] = None
+            # rewrite cache file
+            with open(CACHE_PATH, "w") as f:
+                json.dump(cache, f, indent=4)
         return kanji_data
 
     # build kanji cache entry
@@ -90,7 +97,13 @@ def query_cache_kanji(slug: str) -> dict | SubjectError:
             radical_entry = {}
             radical_entry["slug"] = radical_data["slug"]
             radical_entry["mm"] = radical_data["meaning_mnemonic"]
-            radical_entry["image_url"] = [img["url"] for img in radical_data["character_images"] if img["content_type"] == "image/png" and img["metadata"]["dimensions"] == "32x32"][0]
+            radical_entry["chr"] = radical_data["characters"]
+            if len(radical_data["character_images"]) > 0:
+                radical_entry["image_url"] = [img["url"]
+                    for img in radical_data["character_images"] 
+                    if img["content_type"] == "image/png"
+                    and img["metadata"]["dimensions"] == "32x32"
+                ][0]
 
             # cache the radical entry (note: `id` key gets converted to string for json)
             cache[SubjectType.RADICAL.value][str(id)] = radical_entry
@@ -104,24 +117,6 @@ def query_cache_kanji(slug: str) -> dict | SubjectError:
     return kanji_entry
 
 
-def format_hint(text: str, radical_list: str, meaning_mnemonic, reading_mnemonic) -> str:
-    return f"""
-    <div class="tooltip">
-        <p>{text}</p>
-        <div class="bottom">
-            <div class="radical-list">
-                {radical_list}
-            </div>
-            <div class="meaning-mnemonic">
-                {meaning_mnemonic}
-            </div>
-            <div class="reading-mnemonic">
-                {reading_mnemonic}
-            </div>
-        </div>
-    </div>
-    """
-
 def prepare_kanji_hint(text: str) -> str:
     output = ""
 
@@ -129,12 +124,15 @@ def prepare_kanji_hint(text: str) -> str:
         if not is_kanji(c):
             output += c
             continue
-        
-        # retrieve kanji entry from cache or API
+
         kanji_entry = {}
         if c in cache[SubjectType.KANJI.value]:
-            # get the ids of radicals this kanji is composed of
+            # attempt to grab kanji data via cache
             kanji_entry = cache[SubjectType.KANJI.value][c]
+            # if cache indicates that kanji is not in WaniKani API, skip it
+            if kanji_entry is None:
+                output += c
+                continue
         else:
             # otherwise grab hints from WaniKani via API
             kanji_entry = query_cache_kanji(c)
@@ -142,15 +140,20 @@ def prepare_kanji_hint(text: str) -> str:
                 print(kanji_entry)
                 output += c
                 continue
-            
+
+        # get the ids of radicals this kanji is composed of
         radical_ids = kanji_entry["radical_ids"]
         # query the radical cache for each of their corresponding names
         radical_cache = cache[SubjectType.RADICAL.value]
         radical_names = [radical_cache[str(id)]["slug"] for id in radical_ids]
 
-        # format html to inject into card
+        # format html (via static.py) to inject into card
         radical_names_str = ", ".join(radical_names)
-        output += format_hint(c, radical_names_str, kanji_entry["mm"], kanji_entry["rm"])
+        output += html.format(
+            text=c,
+            radical_list=radical_names_str,
+            meaning_mnemonic=kanji_entry["mm"],
+            reading_mnemonic=kanji_entry["rm"])
     
     return output
 
