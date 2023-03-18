@@ -1,5 +1,6 @@
 {
     "token": null,
     "kanji_filter": "wk-kanji-hint",
-    "vocab_filter": "wk-vocab-hint"
+    "vocab_filter": "wk-vocab-hint",
+    "vocab_field": null
 }
