@@ -1,4 +1,17 @@
-# Courtesy of https://github.com/midse/anki-kakijun under the MIT License
+html = """<div class="tooltip">
+    {text}
+    <div class="bottom">
+        <div class="radical-list">
+            {radical_list}
+        </div>
+        <div class="meaning-mnemonic">
+            {meaning_mnemonic}
+        </div>
+        <div class="reading-mnemonic">
+            {reading_mnemonic}
+        </div>
+    </div>
+</div>"""
 
 css = """
 .tooltip {
@@ -12,12 +25,12 @@ css = """
     width: max-content;
     min-width:100px;
     max-width:400px;
-
     left:50%;
     transform:translate(-50%, 0);
     padding:10px;
     color:#666666;
     background-color:#EEEEEE;
+    font-family: "sans-serif";
     font-weight:normal;
     font-size:13px;
     border-radius:8px;
@@ -39,5 +52,4 @@ css = """
 radical, kanji, reading, ja {
     font-weight: bold;
 }
-
 """
