@@ -12,6 +12,7 @@ class SubjectError(Enum):
     INVALID_TOKEN = -1
     INVALID_SLUG = -2
     INVALID_ID = -3
+    BAD_CONNECTION = -4
 
 def get_subject_by_slug(subject_type: SubjectType, slug: str, token: str) -> dict | SubjectError:
     """
@@ -34,8 +35,12 @@ def get_subject_by_slug(subject_type: SubjectType, slug: str, token: str) -> dic
     headers = {
         "Authorization": f"Bearer {token}"
     }
-
-    r = requests.get(base_url, params=params, headers=headers).json()
+    try:
+        r = requests.get(base_url, params=params, headers=headers).json()
+    except requests.ConnectionError as e:
+        print(e)
+        return SubjectError.BAD_CONNECTION
+    
     if "code" in r and r["code"] == 401:
         return SubjectError.INVALID_TOKEN
     if r["total_count"] == 0:
@@ -61,8 +66,12 @@ def get_subject_by_id(id: int, token: str) -> dict | SubjectError:
     headers = {
         "Authorization": f"Bearer {token}"
     }
-
-    r = requests.get(url, headers=headers)
+    try:
+        r = requests.get(url, headers=headers)
+    except requests.ConnectionError as e:
+        print(e)
+        return SubjectError.BAD_CONNECTION
+    
     if "code" in r:
         error_code = r["code"]
         if error_code == 401:
