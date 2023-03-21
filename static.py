@@ -1,7 +1,7 @@
 html = """
 <div class="tooltip">
     {text}
-    <div class="bottom">
+    <div class="tooltip-bottom">
         <div class="component-list">
             {component_list}
         </div>
@@ -23,7 +23,7 @@ css = """
     text-align:left;
     cursor: pointer;
 }
-.tooltip .bottom {
+.tooltip-bottom {
     width: max-content;
     min-width:100px;
     max-width:400px;
@@ -34,7 +34,7 @@ css = """
     background-color:#EEEEEE;
     font-family: "sans-serif";
     font-weight:normal;
-    font-size:13px;
+    font-size:14px;
     border-radius:8px;
     position:absolute;
     z-index:99999999;
@@ -42,14 +42,14 @@ css = """
     box-shadow:0 1px 8px rgba(0,0,0,0.5);
     display:none;
 }
-.tooltip:hover .bottom {
+.tooltip:hover .tooltip-bottom {
     display:block;
 }
-.component-list {
+.meaning-mnemonic {
+    border-top:2px solid #666;
     border-bottom:2px solid #666;
-}
-.reading-mnemonic, .meaning-mnemonic {
-    border-bottom:2px solid #666;
+    padding: 5px 0px;
+	margin: 5px 0px;
 }
 radical, kanji, vocabulary, reading, ja {
     font-weight: bold;

@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 
 # custom dependencies
-from .api_utils import get_subject_by_slug, get_subject_by_id, SubjectError, SubjectType
+from .api_utils import *
 from .static import html, css
 from .util import is_kanji
 
@@ -147,14 +147,17 @@ def query_cache_radical(id: int, rewrite=True) -> dict | SubjectError:
     #build radical cache entry
     radical_entry = {}
     radical_entry["slug"] = radical_data["slug"]
-    radical_entry["mm"] = radical_data["meaning_mnemonic"]
-    radical_entry["chr"] = radical_data["characters"]
-    if len(radical_data["character_images"]) > 0:
-        radical_entry["image_url"] = [img["url"]
-            for img in radical_data["character_images"] 
-            if img["content_type"] == "image/png"
-            and img["metadata"]["dimensions"] == "32x32"
-        ][0]
+
+    # NOTE: Uncomment the below if extra radical information should be stored. 
+    #
+    # radical_entry["mm"] = radical_data["meaning_mnemonic"]
+    # radical_entry["chr"] = radical_data["characters"]
+    # if len(radical_data["character_images"]) > 0:
+    #     radical_entry["image_url"] = [img["url"]
+    #         for img in radical_data["character_images"] 
+    #         if img["content_type"] == "image/png"
+    #         and img["metadata"]["dimensions"] == "32x32"
+    #     ][0]
 
     # cache the radical entry (note: `id` key gets converted to string for json)
     cache[SubjectType.RADICAL.value][str(id)] = radical_entry
@@ -207,7 +210,8 @@ def prepare_vocab_hint(text: str, vocab: str) -> str:
         text=text,
         component_list=kanji_names_str,
         meaning_mnemonic=vocab_entry["mm"],
-        reading_mnemonic=vocab_entry["rm"])
+        reading_mnemonic=vocab_entry["rm"]
+    )
     
 
 def prepare_kanji_hint(text: str) -> str:
@@ -259,7 +263,8 @@ def prepare_kanji_hint(text: str) -> str:
             text=c,
             component_list=radical_names_str,
             meaning_mnemonic=kanji_entry["mm"],
-            reading_mnemonic=kanji_entry["rm"])
+            reading_mnemonic=kanji_entry["rm"]
+        )
     
     return output
 

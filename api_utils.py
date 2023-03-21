@@ -9,10 +9,10 @@ class SubjectType(str, Enum):
     VOCABULARY = "vocabulary"
 
 class SubjectError(Enum):
-    INVALID_TOKEN = -1
-    INVALID_SLUG = -2
-    INVALID_ID = -3
-    BAD_CONNECTION = -4
+    INVALID_TOKEN = 1
+    INVALID_SLUG = 2
+    INVALID_ID = 3
+    BAD_CONNECTION = 4
 
 def get_subject_by_slug(subject_type: SubjectType, slug: str, token: str) -> dict | SubjectError:
     """
