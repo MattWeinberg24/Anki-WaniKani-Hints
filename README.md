@@ -2,8 +2,10 @@
 
 Integrates with [WaniKani](https://www.wanikani.com) API to add mouseover/on-hover "tips" for what radicals make up a kanji, as well as meaning/reading mnemonics for kanji and vocabulary. Utilizes (generated) local json cache to avoid duplicate queries and drastically increase speed.
 
-![Example (Kanji Hint)](images/example.gif "Example (Kanji Hint)")
+<img src="images/example.gif" alt="Example (Kanji Hint)" title="Example Kanji Hint (size not-to-scale)" width="480"/>
 
+<!-- ![Example (Kanji Hint)](images/example.gif "Example (Kanji Hint)")
+ -->
 ## Installation
 
 ### AnkiWeb (package)
