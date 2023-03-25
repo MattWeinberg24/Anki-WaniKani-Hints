@@ -2,17 +2,28 @@
 
 Integrates with [WaniKani](https://www.wanikani.com) API to add mouseover/on-hover "tips" for what radicals make up a kanji, as well as meaning/reading mnemonics for kanji and vocabulary. Utilizes (generated) local json cache to avoid duplicate queries and drastically increase speed.
 
-## Usage
-1. Clone/download this repository and copy its root directory into your Anki add-ons directory 
+![Example (Kanji Hint)](images/example.gif "Example (Kanji Hint)")
+
+## Installation
+
+### AnkiWeb (package)
+1. Go to https://ankiweb.net/shared/info/1622071232
+2. Follow the instructions in the "Download" section
+
+### Manual (from source)
+1. Clone/download this repository
+2. Copy this repository's root directory into your Anki add-ons directory 
     * Directory can be located in Tools->Add-ons by clicking "View Files"
-2. Go into the configuration options
+
+## Usage
+1. Go into the configuration options
     * In Tools->Add-ons, select this add-on, then click "Config"
-3. Set the "token" option to a valid WaniKani API token (in double-quotes)
+2. Set the "token" option to a valid WaniKani API token (in double-quotes)
     * Can be generated with a free WaniKani account within Account->Settings->API Tokens on their [website](https://www.wanikani.com/settings/personal_access_tokens)
     * Other config options detailed in [config.md](config.md)
-4. Add the filters corresponding to `kanji_filter` and/or `vocab_filter` to your card templates
+3. Add the filters corresponding to `kanji_filter` and/or `vocab_filter` to your card templates
     * For example, with the default value of `kanji_filter`, if you want to add a hint to a field named "Kanji", replace `{{Kanji}}` in your card template with `{{wk-kanji-hint:Kanji}}`
-5. Restart Anki and once you review a card containing the filter, hover your mouse over the relevant field to view the tip.
+4. Restart Anki and once you review a card containing the filter, hover your mouse over the relevant field to view the tip.
     * Non-fatal errors (such as querying a non-existant vocabulary) are printed to stdout if Anki is run via the command-line
 
 ## FAQ
