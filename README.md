@@ -8,6 +8,8 @@ Integrates with [WaniKani](https://www.wanikani.com) API to add mouseover/on-hov
  -->
 ## Installation
 
+### NOTE: CURRENTLY ISSUES WITH PYTHON 3.9 DUE TO THE CODE BEING WRITTEN WITH 3.10. WILL TRY TO MAKE COMPATIBLE WITH 3.9.
+
 ### AnkiWeb (package)
 1. Go to https://ankiweb.net/shared/info/1622071232
 2. Follow the instructions in the "Download" section
