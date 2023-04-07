@@ -22,7 +22,7 @@ EMPTY_CACHE = f"""{{
 config = mw.addonManager.getConfig(__name__)
 cache = {}
 
-def query_cache_vocab(slug: str, rewrite=True) -> dict | SubjectError:
+def query_cache_vocab(slug: str, rewrite=True):
     """
     Query the WaniKani API for information on the provided vocabulary,
     then add relevant data to the local cache
@@ -72,7 +72,7 @@ def query_cache_vocab(slug: str, rewrite=True) -> dict | SubjectError:
     return vocab_entry
 
 
-def query_cache_kanji(slug: str, rewrite=True) -> dict | SubjectError:
+def query_cache_kanji(slug: str, rewrite=True):
     """
     Query the WaniKani API for information on the provided kanji and its radicals,
     then add relevant data to the local cache
@@ -124,7 +124,7 @@ def query_cache_kanji(slug: str, rewrite=True) -> dict | SubjectError:
     return kanji_entry
 
 
-def query_cache_radical(id: int, rewrite=True) -> dict | SubjectError:
+def query_cache_radical(id: int, rewrite=True):
     """
     Query the WaniKani API for information on the provided radical,
     then add relevant data to the local cache

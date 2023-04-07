@@ -14,7 +14,7 @@ class SubjectError(Enum):
     INVALID_ID = 3
     BAD_CONNECTION = 4
 
-def get_subject_by_slug(subject_type: SubjectType, slug: str, token: str) -> dict | SubjectError:
+def get_subject_by_slug(subject_type: SubjectType, slug: str, token: str):
     """
     Query the WaniKani API for a specific subject via its type and slug
 
@@ -49,7 +49,7 @@ def get_subject_by_slug(subject_type: SubjectType, slug: str, token: str) -> dic
     return r["data"][0]["data"]
 
 
-def get_subject_by_id(id: int, token: str) -> dict | SubjectError:
+def get_subject_by_id(id: int, token: str):
     """
     Query the WaniKani API for a specific subject via its ID
 
